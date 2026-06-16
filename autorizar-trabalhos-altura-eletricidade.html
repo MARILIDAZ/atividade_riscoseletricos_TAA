@@ -1,0 +1,1293 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autorizar ou Não Autorizar os Trabalhos?</title>
+  <style>
+    :root {
+      --ink: #17222b;
+      --muted: #64727c;
+      --line: #d5dde3;
+      --panel: #ffffff;
+      --soft: #f4f7f9;
+      --navy: #17324a;
+      --navy-2: #244963;
+      --alert: #d69b27;
+      --danger: #b64242;
+      --ok: #20745d;
+      --shadow: 0 18px 44px rgba(23, 34, 43, .14);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      min-height: 100vh;
+      background: linear-gradient(180deg, #f3f7f9, #e9eef2);
+    }
+
+    button, textarea { font: inherit; }
+    button { border: 0; cursor: pointer; }
+
+    .app {
+      width: min(1180px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 20px 0 26px;
+    }
+
+    .topbar {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2.2vw, 2rem);
+      line-height: 1.08;
+      letter-spacing: 0;
+      color: var(--navy);
+    }
+
+    .module {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.35;
+      max-width: 790px;
+    }
+
+    .status {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(86px, 1fr));
+      gap: 8px;
+      min-width: min(360px, 42vw);
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      background: #f8fafb;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: .74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 1.24rem;
+      color: var(--navy);
+    }
+
+    .progress {
+      height: 9px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #dce4e9;
+      margin-bottom: 14px;
+    }
+
+    .progress > div {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--navy), var(--ok));
+      transition: width .25s ease;
+    }
+
+    .screen {
+      display: none;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .screen.active { display: block; }
+
+    .screen-body { padding: 18px; }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, .85fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 430px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #dbe4e8;
+    }
+
+    .hero img {
+      width: 100%;
+      height: 100%;
+      min-height: 430px;
+      object-fit: cover;
+      display: block;
+      filter: saturate(.94) contrast(.98);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(11, 28, 42, .55), transparent 58%);
+      pointer-events: none;
+    }
+
+    .intro-panel {
+      position: absolute;
+      left: 18px;
+      bottom: 18px;
+      width: min(500px, calc(100% - 36px));
+      color: white;
+      z-index: 2;
+    }
+
+    .intro-panel h2 {
+      margin: 0 0 8px;
+      font-size: clamp(1.35rem, 2.4vw, 2.25rem);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .intro-panel p {
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafb;
+      padding: 14px;
+    }
+
+    .panel h2, .panel h3 {
+      margin: 0 0 8px;
+      color: var(--navy);
+      letter-spacing: 0;
+    }
+
+    .panel p, .panel li {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .profiles {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .profile {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: white;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+
+    .profile strong { display: block; color: var(--ink); }
+    .profile span { color: var(--muted); font-size: .92rem; }
+
+    .scene-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(300px, .75fr);
+      gap: 16px;
+      padding: 18px;
+    }
+
+    .scene {
+      position: relative;
+      min-height: 540px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #dbe4e8;
+    }
+
+    .scene img {
+      width: 100%;
+      height: 100%;
+      min-height: 540px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .scene::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(12, 29, 42, .08), rgba(12, 29, 42, .22));
+      pointer-events: none;
+    }
+
+    .hotspot {
+      position: absolute;
+      z-index: 4;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--alert);
+      color: #1f1a0d;
+      border: 3px solid white;
+      box-shadow: 0 9px 20px rgba(0,0,0,.25);
+      font-weight: 900;
+      transition: transform .15s ease, background .15s ease;
+    }
+
+    .hotspot:hover, .hotspot:focus-visible {
+      transform: scale(1.08);
+      outline: 3px solid rgba(214, 155, 39, .28);
+      outline-offset: 3px;
+    }
+
+    .hotspot.done {
+      background: var(--ok);
+      color: white;
+    }
+
+    .feedback {
+      min-height: 132px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      padding: 12px;
+      line-height: 1.45;
+      margin-top: 12px;
+    }
+
+    .feedback strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--navy);
+    }
+
+    .hotspot-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .hotspot-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      padding: 9px 10px;
+      color: var(--muted);
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 8px;
+      align-items: start;
+      line-height: 1.32;
+    }
+
+    .hotspot-item b {
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #e6edf1;
+      color: var(--navy);
+      font-size: .82rem;
+    }
+
+    .hotspot-item.done {
+      color: var(--ink);
+      border-color: #b9d8cf;
+      background: #edf8f5;
+    }
+
+    .hotspot-item.done b {
+      background: var(--ok);
+      color: white;
+    }
+
+    .question h2 {
+      margin: 0 0 12px;
+      color: var(--navy);
+      letter-spacing: 0;
+    }
+
+    .question-layout {
+      display: grid;
+      grid-template-columns: minmax(0, .92fr) minmax(320px, .78fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .question-visual {
+      position: relative;
+      min-height: 430px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #dbe4e8;
+    }
+
+    .question-visual img {
+      width: 100%;
+      height: 100%;
+      min-height: 430px;
+      object-fit: cover;
+      display: block;
+      filter: saturate(.94) contrast(.98);
+    }
+
+    .question-visual::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(8, 24, 38, .08), rgba(8, 24, 38, .44));
+      pointer-events: none;
+    }
+
+    .visual-caption {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 14px;
+      z-index: 2;
+      color: white;
+      background: rgba(16, 35, 49, .82);
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 8px;
+      padding: 10px 12px;
+      line-height: 1.35;
+      font-size: .94rem;
+    }
+
+    .visual-marker {
+      position: absolute;
+      z-index: 3;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--alert);
+      color: #1f1a0d;
+      border: 3px solid white;
+      box-shadow: 0 9px 20px rgba(0,0,0,.28);
+      font-weight: 900;
+    }
+
+    .visual-marker.danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .visual-marker.ok {
+      background: var(--ok);
+      color: white;
+    }
+
+    .question-text {
+      color: var(--ink);
+      font-size: 1.05rem;
+      line-height: 1.45;
+      margin-bottom: 14px;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option {
+      text-align: left;
+      border: 1px solid var(--line);
+      background: #f8fafb;
+      border-radius: 8px;
+      padding: 12px 13px;
+      color: var(--ink);
+      line-height: 1.35;
+    }
+
+    .option.correct {
+      border-color: #9fcebf;
+      background: #eaf7f2;
+    }
+
+    .option.incorrect {
+      border-color: #e5b0a8;
+      background: #fff0ee;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 9px;
+    }
+
+    .check-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #f8fafb;
+    }
+
+    .choice-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .mini {
+      min-width: 94px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--navy);
+      font-weight: 850;
+      padding: 8px 9px;
+    }
+
+    .mini.active.ok {
+      background: #eaf7f2;
+      border-color: #9fcebf;
+      color: var(--ok);
+    }
+
+    .mini.active.no {
+      background: #fff0ee;
+      border-color: #e5b0a8;
+      color: var(--danger);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      line-height: 1.45;
+      color: var(--ink);
+      background: #f8fafb;
+    }
+
+    .summary-score {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .summary-score .metric { background: white; }
+
+    .key-messages {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .key {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      padding: 10px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .report-box {
+      width: 100%;
+      min-height: 150px;
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: white;
+      color: var(--ink);
+      line-height: 1.4;
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+
+    .report-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      padding: 14px 18px;
+      border-top: 1px solid var(--line);
+      background: #f8fafb;
+    }
+
+    .btn {
+      min-height: 44px;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-weight: 900;
+    }
+
+    .btn.primary {
+      background: var(--navy);
+      color: white;
+    }
+
+    .btn.secondary {
+      background: white;
+      color: var(--navy);
+      border: 1px solid var(--line);
+    }
+
+    .btn:disabled {
+      opacity: .48;
+      cursor: not-allowed;
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 900px) {
+      .topbar, .split, .scene-wrap, .question-layout {
+        grid-template-columns: 1fr;
+      }
+      .status { min-width: 0; width: 100%; }
+      .scene, .scene img { min-height: 470px; }
+      .summary-score, .key-messages { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 580px) {
+      .app { width: min(100vw - 18px, 1180px); padding-top: 10px; }
+      .status, .choice-pair { grid-template-columns: 1fr; }
+      .check-row { grid-template-columns: 1fr; }
+      .scene, .scene img, .hero, .hero img, .question-visual, .question-visual img { min-height: 390px; }
+      .nav { flex-direction: column; align-items: stretch; }
+      .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <h1>Autorizar ou Não Autorizar os Trabalhos?</h1>
+        <p class="module">Módulo: Trabalho em Altura em Instalações Elétricas ou nas Imediações</p>
+      </div>
+      <section class="status" aria-label="Estado da atividade">
+        <div class="metric"><span>Ecrã</span><strong id="screenCounter">1/9</strong></div>
+        <div class="metric"><span>Desempenho</span><strong id="scoreDisplay">0%</strong></div>
+        <div class="metric"><span>Estado</span><strong id="statusDisplay">Em curso</strong></div>
+      </section>
+    </header>
+
+    <div class="progress" aria-hidden="true"><div id="progressBar"></div></div>
+
+    <section class="screen active" data-screen="0">
+      <div class="screen-body split">
+        <div class="hero">
+          <img src="assets/cenario-industrial-altura.png" alt="Instalação industrial com cobertura metálica, linha elétrica aérea, plataforma elevatória e zona de trabalho por delimitar.">
+          <div class="intro-panel">
+            <h2>Validação final de autorização de trabalhos</h2>
+            <p>Assuma o papel de Carlos, responsável pela autorização. Analise o local, identifique riscos e decida se estão reunidas as condições de segurança.</p>
+          </div>
+        </div>
+        <aside class="panel">
+          <h2>Enquadramento</h2>
+          <p>Foi solicitada a substituição de um sistema de ventilação numa cobertura industrial. A intervenção será realizada em altura e existe uma linha elétrica aérea nas proximidades.</p>
+          <p>Antes de autorizar o início dos trabalhos, deverá analisar o local, identificar os riscos e verificar se estão reunidas as condições de segurança.</p>
+          <div class="profiles">
+            <div class="profile"><div class="avatar">C</div><div><strong>Carlos</strong><span>Responsável pela autorização dos trabalhos</span></div></div>
+            <div class="profile"><div class="avatar">A</div><div><strong>Ana</strong><span>Técnica de segurança</span></div></div>
+            <div class="profile"><div class="avatar">J</div><div><strong>João</strong><span>Operador de plataforma elevatória</span></div></div>
+          </div>
+        </aside>
+      </div>
+      <nav class="nav">
+        <span class="small-note">A atividade funciona como validação final do módulo.</span>
+        <button class="btn primary" type="button" data-next>Iniciar inspeção</button>
+      </nav>
+    </section>
+
+    <section class="screen" data-screen="1">
+      <div class="scene-wrap">
+        <div class="scene" id="scene">
+          <img src="assets/cenario-industrial-altura.png" alt="Cena de inspeção para identificação de riscos em trabalhos em altura junto de instalações elétricas.">
+        </div>
+        <aside class="panel">
+          <h2>Inspeção inicial do local</h2>
+          <p>Observe a imagem e identifique todos os elementos que devem ser avaliados antes do início dos trabalhos.</p>
+          <div class="hotspot-list" id="hotspotList"></div>
+          <div class="feedback" aria-live="polite">
+            <strong id="hotspotFeedbackTitle">A aguardar identificação.</strong>
+            <span id="hotspotFeedbackText">A atividade só permite avançar após todos os pontos críticos serem identificados.</span>
+          </div>
+        </aside>
+      </div>
+      <nav class="nav">
+        <button class="btn secondary" type="button" data-prev>Anterior</button>
+        <button class="btn primary" type="button" id="hotspotNext" data-next disabled>Avançar</button>
+      </nav>
+    </section>
+
+    <section class="screen question" data-screen="2">
+      <div class="screen-body question-layout">
+        <div>
+          <h2>Primeira decisão</h2>
+          <p class="question-text">A linha elétrica encontra-se próxima da zona de intervenção. O que deve ser feito antes de autorizar os trabalhos?</p>
+          <div class="options" data-question="q1"></div>
+          <div class="feedback" id="q1Feedback" aria-live="polite"><strong>Selecione uma opção.</strong><span>O feedback será apresentado após a seleção.</span></div>
+        </div>
+        <aside class="question-visual" aria-label="Imagem contextual da linha elétrica próxima da intervenção">
+          <img src="assets/cenario-industrial-altura.png" alt="Cena industrial com linha elétrica aérea próxima da zona de trabalho em altura.">
+          <div class="visual-marker" style="left:65%; top:18%;">1</div>
+          <div class="visual-caption">Observe a relação entre a zona de intervenção e a linha elétrica aérea. Analise que medida deve ser tomada antes da autorização.</div>
+        </aside>
+      </div>
+      <nav class="nav">
+        <button class="btn secondary" type="button" data-prev>Anterior</button>
+        <button class="btn primary" type="button" data-next disabled id="q1Next">Avançar</button>
+      </nav>
+    </section>
+
+    <section class="screen question" data-screen="3">
+      <div class="screen-body question-layout">
+        <div>
+          <h2>Escolha do equipamento de acesso</h2>
+          <p class="question-text">Qual o equipamento mais adequado para aceder à zona de intervenção?</p>
+          <div class="options" data-question="q2"></div>
+          <div class="feedback" id="q2Feedback" aria-live="polite"><strong>Selecione uma opção.</strong><span>O feedback será apresentado após a seleção.</span></div>
+        </div>
+        <aside class="question-visual" aria-label="Imagem contextual da plataforma elevatória">
+          <img src="assets/cenario-industrial-altura.png" alt="Cena industrial com plataforma elevatória disponível junto à fachada.">
+          <div class="visual-marker" style="left:61%; top:60%;">1</div>
+          <div class="visual-caption">Observe os meios de acesso disponíveis e as condições do local. Selecione a opção tecnicamente mais adequada para a intervenção.</div>
+        </aside>
+      </div>
+      <nav class="nav">
+        <button class="btn secondary" type="button" data-prev>Anterior</button>
+        <button class="btn primary" type="button" data-next disabled id="q2Next">Avançar</button>
+      </nav>
+    </section>
+
+    <section class="screen question" data-screen="4">
+      <div class="screen-body question-layout">
+        <div>
+          <h2>Alteração das condições</h2>
+          <p class="question-text">Durante o planeamento, verifica-se aumento significativo do vento. A manga de vento indica alteração das condições meteorológicas. Como deve proceder?</p>
+          <div class="options" data-question="q3"></div>
+          <div class="feedback" id="q3Feedback" aria-live="polite"><strong>Selecione uma opção.</strong><span>O feedback será apresentado após a seleção.</span></div>
+        </div>
+        <aside class="question-visual" aria-label="Imagem contextual das condições meteorológicas">
+          <img src="assets/cenario-industrial-altura.png" alt="Cena industrial com indicação meteorológica e trabalho em altura planeado.">
+          <div class="visual-marker" style="left:86%; top:25%;">1</div>
+          <div class="visual-caption">Observe a indicação meteorológica e considere o impacto de uma alteração das condições no planeamento dos trabalhos.</div>
+        </aside>
+      </div>
+      <nav class="nav">
+        <button class="btn secondary" type="button" data-prev>Anterior</button>
+        <button class="btn primary" type="button" data-next disabled id="q3Next">Avançar</button>
+      </nav>
+    </section>
+
+    <section class="screen" data-screen="5">
+      <div class="screen-body question-layout">
+        <div>
+          <div class="panel">
+            <h2>Verificação antes da autorização</h2>
+            <p>Assinale se cada condição está cumprida ou não cumprida. A decisão final deve refletir esta verificação.</p>
+          </div>
+          <div class="checklist" id="checklist"></div>
+          <div class="feedback" id="checkFeedback" aria-live="polite">
+            <strong>Checklist em preenchimento.</strong>
+            <span>Todos os itens devem ser classificados antes de avançar.</span>
+          </div>
+        </div>
+        <aside class="question-visual" aria-label="Imagem contextual da checklist de autorização">
+          <img src="assets/cenario-industrial-altura.png" alt="Cena industrial para verificação de condições antes da autorização dos trabalhos.">
+          <div class="visual-marker" style="left:47%; top:78%;">1</div>
+          <div class="visual-marker" style="left:65%; top:18%;">2</div>
+          <div class="visual-marker" style="left:61%; top:60%;">3</div>
+          <div class="visual-caption">Use a imagem para apoiar a verificação das condições do local. Classifique cada item da checklist de acordo com a informação disponível.</div>
+        </aside>
+      </div>
+      <nav class="nav">
+        <button class="btn secondary" type="button" data-prev>Anterior</button>
+        <button class="btn primary" type="button" data-next disabled id="checkNext">Avançar</button>
+      </nav>
+    </section>
+
+    <section class="screen question" data-screen="6">
+      <div class="screen-body question-layout">
+        <div>
+          <h2>Decisão final</h2>
+          <p class="question-text">Face à informação analisada, pode autorizar o início dos trabalhos?</p>
+          <div class="options" data-question="finalDecision"></div>
+          <div class="feedback" id="finalDecisionFeedback" aria-live="polite"><strong>Selecione uma opção.</strong><span>A correção depende do resultado da checklist.</span></div>
+        </div>
+        <aside class="question-visual" aria-label="Imagem contextual da autorização final dos trabalhos">
+          <img src="assets/cenario-industrial-altura.png" alt="Cena industrial analisada para decisão final de autorização dos trabalhos.">
+          <div class="visual-marker" style="left:47%; top:78%;">1</div>
+          <div class="visual-caption">Observe o conjunto da situação analisada e tome a decisão final com base na checklist preenchida.</div>
+        </aside>
+      </div>
+      <nav class="nav">
+        <button class="btn secondary" type="button" data-prev>Anterior</button>
+        <button class="btn primary" type="button" data-next disabled id="finalDecisionNext">Avançar</button>
+      </nav>
+    </section>
+
+    <section class="screen" data-screen="7">
+      <div class="screen-body question-layout">
+        <div>
+          <div class="panel">
+            <h2>Reflexão final</h2>
+            <p>Indique três verificações essenciais antes de autorizar trabalhos em altura nas proximidades de instalações elétricas.</p>
+          </div>
+          <textarea id="reflection" placeholder="Escreva a sua resposta..."></textarea>
+          <div class="feedback" id="reflectionFeedback" aria-live="polite">
+            <strong>Resposta ainda não submetida.</strong>
+            <span>A resposta será analisada por palavras-chave associadas aos conteúdos do módulo.</span>
+          </div>
+        </div>
+        <aside class="question-visual" aria-label="Imagem contextual para reflexão final">
+          <img src="assets/cenario-industrial-altura.png" alt="Cena industrial para apoiar a reflexão sobre verificações essenciais.">
+          <div class="visual-marker" style="left:65%; top:18%;">1</div>
+          <div class="visual-marker" style="left:47%; top:78%;">?</div>
+          <div class="visual-caption">Use a imagem como referência: risco elétrico, cobertura, meteorologia, meio de acesso, circulação, delimitação da área e comunicação à equipa.</div>
+        </aside>
+      </div>
+      <nav class="nav">
+        <button class="btn secondary" type="button" data-prev>Anterior</button>
+        <button class="btn primary" type="button" id="submitReflection">Submeter reflexão</button>
+        <button class="btn primary" type="button" data-next disabled id="reflectionNext">Avançar</button>
+      </nav>
+    </section>
+
+    <section class="screen" data-screen="8">
+      <div class="screen-body question-layout">
+        <div class="panel">
+          <h2>Síntese</h2>
+          <p>Os trabalhos em altura realizados em instalações elétricas ou nas suas proximidades exigem verificação prévia rigorosa. A autorização dos trabalhos só deve ocorrer quando os riscos foram avaliados, as medidas de prevenção foram definidas e as condições de segurança estão reunidas.</p>
+          <div class="summary-score">
+            <div class="metric"><span>Resultado</span><strong id="finalScore">0%</strong></div>
+            <div class="metric"><span>Classificação</span><strong id="finalBand">-</strong></div>
+            <div class="metric"><span>Estado SCORM</span><strong id="scormState">Em curso</strong></div>
+          </div>
+          <h3>Relatório para consulta do formador</h3>
+          <p>Se a atividade estiver em iframe no Rise, a resposta aberta pode não ser recolhida automaticamente pelo Rise. O formando pode copiar ou transferir este relatório e submetê-lo no local indicado pelo formador.</p>
+          <pre class="report-box" id="reportBox">O relatório será gerado no final.</pre>
+          <div class="report-actions">
+            <button class="btn secondary" type="button" id="copyReport">Copiar relatório</button>
+            <button class="btn secondary" type="button" id="downloadReport">Transferir relatório .txt</button>
+          </div>
+          <h3>Mensagens-chave</h3>
+          <div class="key-messages">
+            <div class="key">Avaliar antes de iniciar.</div>
+            <div class="key">Confirmar a proximidade de instalações elétricas.</div>
+            <div class="key">Verificar distâncias de segurança.</div>
+            <div class="key">Confirmar condições meteorológicas.</div>
+            <div class="key">Utilizar equipamento adequado.</div>
+            <div class="key">Delimitar e controlar a área de trabalho.</div>
+            <div class="key">Comunicar os riscos à equipa.</div>
+            <div class="key">Não autorizar trabalhos quando existam condições por cumprir.</div>
+          </div>
+        </div>
+        <aside class="question-visual" aria-label="Imagem de síntese da situação de trabalho">
+          <img src="assets/cenario-industrial-altura.png" alt="Cena industrial usada na atividade, sintetizando os principais riscos verificados.">
+          <div class="visual-marker" style="left:65%; top:18%;">1</div>
+          <div class="visual-marker" style="left:61%; top:60%;">2</div>
+          <div class="visual-caption">Síntese visual: a decisão de autorizar depende da conjugação de riscos elétricos, trabalho em altura, acesso, meteorologia, circulação e delimitação da zona.</div>
+        </aside>
+      </div>
+      <nav class="nav">
+        <button class="btn secondary" type="button" data-prev>Anterior</button>
+        <button class="btn primary" type="button" id="finishBtn">Guardar resultado</button>
+      </nav>
+    </section>
+  </main>
+
+  <script>
+    const hotspots = [
+      { id: 'powerline', label: 'Linha elétrica aérea', x: 65, y: 18, feedback: 'A proximidade de linhas elétricas pode originar contacto direto, contacto por aproximação ou arco elétrico. Deve ser verificada a distância de segurança e, quando aplicável, contactado o operador da rede.' },
+      { id: 'roof', label: 'Cobertura e claraboias', x: 46, y: 34, feedback: 'As claraboias e zonas frágeis da cobertura podem não suportar o peso de um trabalhador. Devem ser identificadas e protegidas antes do início dos trabalhos.' },
+      { id: 'platform', label: 'Plataforma elevatória', x: 61, y: 60, feedback: 'O equipamento de acesso deve ser adequado à tarefa, ao local e ao risco elétrico existente. Deve ser verificado o seu estado, estabilidade, capacidade e condições de utilização.' },
+      { id: 'materials', label: 'Materiais armazenados junto à fachada', x: 31, y: 67, feedback: 'Materiais mal posicionados podem dificultar o acesso, criar obstáculos ou interferir com a circulação de pessoas e equipamentos.' },
+      { id: 'traffic', label: 'Zona de circulação de veículos', x: 78, y: 76, feedback: 'A circulação de empilhadores ou outros veículos pode interferir com a operação. A zona de trabalho deve ser delimitada e a circulação controlada.' },
+      { id: 'weather', label: 'Condições meteorológicas', x: 86, y: 25, feedback: 'Vento, chuva, nevoeiro ou trovoada podem aumentar o risco de queda e o risco elétrico. As condições meteorológicas devem ser verificadas antes e durante os trabalhos.' },
+      { id: 'boundary', label: 'Ausência de delimitação da área', x: 47, y: 78, feedback: 'A área de trabalho deve estar sinalizada e delimitada para impedir acessos não autorizados e reduzir interferências com outras atividades.' }
+    ];
+
+    const questions = {
+      q1: {
+        correct: 'B',
+        next: 'q1Next',
+        feedback: 'q1Feedback',
+        options: [
+          ['A', 'Iniciar os trabalhos normalmente.', 'Incorreto. A proximidade de instalações elétricas exige avaliação específica antes do início dos trabalhos.'],
+          ['B', 'Contactar previamente o operador da rede elétrica, quando aplicável.', 'Correto. A coordenação prévia com o operador da rede pode ser necessária para confirmar condições de segurança, distâncias e eventuais medidas adicionais.'],
+          ['C', 'Trabalhar apenas durante o período da manhã.', 'Incorreto. O horário de trabalho não elimina o risco elétrico nem substitui a avaliação das condições de segurança.'],
+          ['D', 'Solicitar apenas a utilização de EPI.', 'Incorreto. Os equipamentos de proteção individual não substituem a avaliação prévia, a coordenação com entidades competentes e as medidas técnicas ou organizacionais necessárias.']
+        ]
+      },
+      q2: {
+        correct: 'B',
+        next: 'q2Next',
+        feedback: 'q2Feedback',
+        options: [
+          ['A', 'Escada portátil.', 'Incorreto. A escada portátil deve ser evitada quando existem alternativas mais estáveis e adequadas à tarefa.'],
+          ['B', 'Plataforma elevatória adequada às condições do local.', 'Correto. A plataforma elevatória, quando adequada ao local e utilizada por trabalhador habilitado, proporciona maior estabilidade e controlo do risco.'],
+          ['C', 'Estrado improvisado.', 'Incorreto. Equipamentos improvisados não devem ser utilizados como meios de acesso ou trabalho em altura.'],
+          ['D', 'Escadote doméstico.', 'Incorreto. Um escadote doméstico não é adequado para trabalhos em altura em contexto industrial.']
+        ]
+      },
+      q3: {
+        correct: 'B',
+        next: 'q3Next',
+        feedback: 'q3Feedback',
+        options: [
+          ['A', 'Continuar sem alterações.', 'Incorreto. As alterações meteorológicas podem modificar o nível de risco e devem ser consideradas antes do início dos trabalhos.'],
+          ['B', 'Reavaliar os riscos antes de iniciar os trabalhos.', 'Correto. Sempre que as condições se alteram, a avaliação de riscos deve ser revista.'],
+          ['C', 'Reduzir apenas o número de trabalhadores.', 'Incorreto. Reduzir a equipa não controla, por si só, os riscos associados ao vento, queda ou proximidade elétrica.'],
+          ['D', 'Utilizar mais EPI.', 'Incorreto. A utilização de EPI não substitui a reavaliação das condições de trabalho.']
+        ]
+      },
+      finalDecision: {
+        next: 'finalDecisionNext',
+        feedback: 'finalDecisionFeedback',
+        options: [
+          ['A', 'Sim, os trabalhos podem iniciar.'],
+          ['B', 'Não, os trabalhos não devem iniciar.']
+        ]
+      }
+    };
+
+    const checklistItems = [
+      'Avaliação de riscos realizada',
+      'Distâncias de segurança verificadas',
+      'Operador da rede contactado, quando aplicável',
+      'Trabalhadores informados sobre os riscos',
+      'Equipamento de acesso adequado disponível',
+      'Condições meteorológicas verificadas',
+      'Zona de trabalho delimitada',
+      'Materiais e obstáculos controlados',
+      'Plano de emergência definido',
+      'Comunicação entre equipa estabelecida'
+    ];
+
+    const state = {
+      screen: 0,
+      hotspots: new Set(),
+      answers: {},
+      checklist: {},
+      finalDecisionCorrect: false,
+      reflectionSubmitted: false,
+      reflectionPoints: 0,
+      finished: false
+    };
+
+    const screens = [...document.querySelectorAll('.screen')];
+
+    function findScormApi(win) {
+      let current = win;
+      for (let i = 0; i < 8 && current; i++) {
+        if (current.API) return current.API;
+        if (current.parent === current) break;
+        current = current.parent;
+      }
+      if (win.opener) return findScormApi(win.opener);
+      return null;
+    }
+
+    const scorm = {
+      api: null,
+      initialized: false,
+      init() {
+        this.api = findScormApi(window);
+        if (this.api && !this.initialized) {
+          try {
+            this.api.LMSInitialize('');
+            this.initialized = true;
+            this.set('cmi.core.lesson_status', 'incomplete');
+          } catch (e) {}
+        }
+      },
+      set(key, value) {
+        if (!this.api || !this.initialized) return;
+        try { this.api.LMSSetValue(key, String(value)); this.api.LMSCommit(''); } catch (e) {}
+      },
+      finish() {
+        if (!this.api || !this.initialized) return;
+        try { this.api.LMSFinish(''); this.initialized = false; } catch (e) {}
+      }
+    };
+
+    function renderHotspots() {
+      const scene = document.getElementById('scene');
+      const list = document.getElementById('hotspotList');
+      scene.querySelectorAll('.hotspot').forEach(el => el.remove());
+      list.innerHTML = '';
+
+      hotspots.forEach((spot, index) => {
+        const button = document.createElement('button');
+        button.className = 'hotspot' + (state.hotspots.has(spot.id) ? ' done' : '');
+        button.type = 'button';
+        button.style.left = spot.x + '%';
+        button.style.top = spot.y + '%';
+        button.textContent = index + 1;
+        button.setAttribute('aria-label', spot.label);
+        button.addEventListener('click', () => {
+          state.hotspots.add(spot.id);
+          button.classList.add('done');
+          document.getElementById('hotspotFeedbackTitle').textContent = spot.label;
+          document.getElementById('hotspotFeedbackText').textContent = spot.feedback;
+          updateHotspotList();
+          updateScore();
+        });
+        scene.appendChild(button);
+
+        const row = document.createElement('div');
+        row.className = 'hotspot-item' + (state.hotspots.has(spot.id) ? ' done' : '');
+        row.dataset.hotspotItem = spot.id;
+        row.innerHTML = '<b>' + (state.hotspots.has(spot.id) ? '✓' : index + 1) + '</b><span>' + spot.label + '</span>';
+        list.appendChild(row);
+      });
+    }
+
+    function updateHotspotList() {
+      hotspots.forEach((spot, index) => {
+        const row = document.querySelector('[data-hotspot-item="' + spot.id + '"]');
+        const done = state.hotspots.has(spot.id);
+        row.classList.toggle('done', done);
+        row.querySelector('b').textContent = done ? '✓' : index + 1;
+      });
+      document.getElementById('hotspotNext').disabled = state.hotspots.size !== hotspots.length;
+    }
+
+    function renderQuestions() {
+      Object.entries(questions).forEach(([id, question]) => {
+        const container = document.querySelector('[data-question="' + id + '"]');
+        if (!container) return;
+        container.innerHTML = '';
+        question.options.forEach(option => {
+          const button = document.createElement('button');
+          button.className = 'option';
+          button.type = 'button';
+          button.textContent = option[0] + ') ' + option[1];
+          button.addEventListener('click', () => answerQuestion(id, option[0], button));
+          container.appendChild(button);
+        });
+      });
+    }
+
+    function answerQuestion(id, selected, button) {
+      const question = questions[id];
+      const container = document.querySelector('[data-question="' + id + '"]');
+      container.querySelectorAll('.option').forEach(el => {
+        el.disabled = true;
+      });
+
+      if (id === 'finalDecision') {
+        const correctAnswer = allChecklistCompliant() ? 'A' : 'B';
+        const correct = selected === correctAnswer;
+        state.finalDecisionCorrect = correct;
+        button.classList.add(correct ? 'correct' : 'incorrect');
+        const feedback = document.getElementById(question.feedback);
+        feedback.querySelector('strong').textContent = correct ? 'Decisão correta.' : 'Decisão incorreta.';
+        if (selected === 'A' && correct) feedback.querySelector('span').textContent = 'Correto. Os trabalhos só devem ser autorizados quando os riscos foram avaliados, as medidas de prevenção foram definidas e as condições de segurança estão verificadas.';
+        if (selected === 'A' && !correct) feedback.querySelector('span').textContent = 'Incorreto. Existem condições por cumprir. Os trabalhos não devem ser autorizados enquanto não forem implementadas as medidas necessárias.';
+        if (selected === 'B' && correct) feedback.querySelector('span').textContent = 'Correto. A identificação de condições por cumprir deve impedir o início dos trabalhos até que os riscos estejam controlados.';
+        if (selected === 'B' && !correct) feedback.querySelector('span').textContent = 'Incorreto. Se todas as condições de segurança estiverem verificadas, os trabalhos podem ser autorizados, mantendo a monitorização durante a execução.';
+        document.getElementById(question.next).disabled = false;
+        updateScore();
+        return;
+      }
+
+      state.answers[id] = selected;
+      const correct = selected === question.correct;
+      button.classList.add(correct ? 'correct' : 'incorrect');
+      const chosen = question.options.find(option => option[0] === selected);
+      const feedback = document.getElementById(question.feedback);
+      feedback.querySelector('strong').textContent = correct ? 'Resposta correta.' : 'Resposta incorreta.';
+      feedback.querySelector('span').textContent = chosen[2];
+      document.getElementById(question.next).disabled = false;
+      updateScore();
+    }
+
+    function renderChecklist() {
+      const container = document.getElementById('checklist');
+      container.innerHTML = '';
+      checklistItems.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'check-row';
+        row.innerHTML = '<strong>' + (index + 1) + '. ' + item + '</strong><div class="choice-pair"><button class="mini ok" type="button" data-value="ok">Cumpre</button><button class="mini no" type="button" data-value="no">Não cumpre</button></div>';
+        row.querySelectorAll('button').forEach(button => {
+          button.addEventListener('click', () => {
+            state.checklist[index] = button.dataset.value;
+            row.querySelectorAll('button').forEach(el => el.classList.remove('active'));
+            button.classList.add('active');
+            updateChecklistState();
+            updateScore();
+          });
+        });
+        container.appendChild(row);
+      });
+    }
+
+    function updateChecklistState() {
+      const answered = Object.keys(state.checklist).length;
+      const missing = checklistItems.length - answered;
+      const feedback = document.getElementById('checkFeedback');
+      if (missing > 0) {
+        feedback.querySelector('strong').textContent = 'Checklist em preenchimento.';
+        feedback.querySelector('span').textContent = 'Faltam classificar ' + missing + ' condição(ões).';
+        document.getElementById('checkNext').disabled = true;
+        return;
+      }
+      if (allChecklistCompliant()) {
+        feedback.querySelector('strong').textContent = 'Todas as condições estão assinaladas como cumpridas.';
+        feedback.querySelector('span').textContent = 'A decisão final deverá refletir que os trabalhos podem ser autorizados, mantendo a monitorização durante a execução.';
+      } else {
+        feedback.querySelector('strong').textContent = 'Existem condições por cumprir.';
+        feedback.querySelector('span').textContent = 'A decisão final deverá refletir que os trabalhos não devem ser autorizados até implementação das medidas necessárias.';
+      }
+      document.getElementById('checkNext').disabled = false;
+    }
+
+    function allChecklistCompliant() {
+      return checklistItems.every((_, index) => state.checklist[index] === 'ok');
+    }
+
+    function submitReflection() {
+      const rawText = document.getElementById('reflection').value.trim();
+      const text = rawText.toLowerCase();
+      const concepts = [
+        ['avaliação de riscos', 'avaliacao de riscos', 'riscos'],
+        ['distância', 'distancias', 'segurança elétrica', 'eletrica'],
+        ['operador da rede', 'rede elétrica', 'rede eletrica'],
+        ['meteorológicas', 'meteorologicas', 'vento', 'chuva', 'trovoada'],
+        ['plataforma', 'equipamento adequado', 'equipamento de acesso'],
+        ['delimitação', 'delimitacao', 'sinalização', 'sinalizacao'],
+        ['trabalhadores informados', 'briefing', 'comunicação', 'comunicacao'],
+        ['emergência', 'emergencia']
+      ];
+      let matches = 0;
+      concepts.forEach(group => {
+        if (group.some(word => text.includes(word))) matches += 1;
+      });
+      state.reflectionPoints = Math.min(1, matches / 3);
+      state.reflectionSubmitted = true;
+      localStorage.setItem('sht_altura_eletrica_reflection', rawText);
+      const feedback = document.getElementById('reflectionFeedback');
+      feedback.querySelector('strong').textContent = 'Reflexão submetida.';
+      feedback.querySelector('span').textContent = 'A resposta fica incluída no relatório final. Deve referir aspetos como avaliação de riscos, distâncias de segurança, contacto com o operador da rede, condições meteorológicas, equipamento adequado, delimitação da zona de trabalho, informação aos trabalhadores e plano de emergência.';
+      document.getElementById('reflectionNext').disabled = false;
+      saveSuspendData();
+      updateScore();
+    }
+
+    function calculateScore() {
+      const hotspotScore = (state.hotspots.size / hotspots.length) * 30;
+      const decisionScore = ['q1', 'q2', 'q3'].reduce((sum, id) => sum + (state.answers[id] === questions[id].correct ? 10 : 0), 0);
+      const checklistAnswered = Object.keys(state.checklist).length;
+      let checklistScore = 0;
+      if (checklistAnswered === checklistItems.length) {
+        checklistScore = allChecklistCompliant() ? 25 : 18;
+      }
+      const finalDecisionScore = state.finalDecisionCorrect ? 8 : 0;
+      const reflectionScore = state.reflectionSubmitted ? state.reflectionPoints * 7 : 0;
+      return Math.round(hotspotScore + decisionScore + checklistScore + finalDecisionScore + reflectionScore);
+    }
+
+    function band(score) {
+      if (score >= 90) return 'Decisão adequada';
+      if (score >= 70) return 'Decisão globalmente adequada, com aspetos a rever';
+      return 'Necessária revisão dos conteúdos do módulo';
+    }
+
+    function updateScore() {
+      const score = calculateScore();
+      document.getElementById('scoreDisplay').textContent = score + '%';
+      localStorage.setItem('sht_altura_eletrica_score', String(score));
+      scorm.set('cmi.core.score.raw', score);
+      scorm.set('cmi.core.score.min', 0);
+      scorm.set('cmi.core.score.max', 100);
+      scorm.set('cmi.core.lesson_status', state.finished ? (score >= 70 ? 'passed' : 'failed') : 'incomplete');
+      saveSuspendData();
+    }
+
+    function saveSuspendData() {
+      const data = {
+        score: calculateScore(),
+        hotspots: [...state.hotspots],
+        answers: state.answers,
+        checklist: state.checklist,
+        finalDecisionCorrect: state.finalDecisionCorrect,
+        reflection: document.getElementById('reflection') ? document.getElementById('reflection').value.trim() : '',
+        finished: state.finished
+      };
+      const payload = JSON.stringify(data).slice(0, 3900);
+      localStorage.setItem('sht_altura_eletrica_suspend_data', payload);
+      scorm.set('cmi.suspend_data', payload);
+    }
+
+    function buildReport() {
+      const score = calculateScore();
+      const reflection = document.getElementById('reflection').value.trim() || 'Sem resposta submetida.';
+      const checklistSummary = checklistItems.map((item, index) => {
+        const value = state.checklist[index] === 'ok' ? 'Cumpre' : state.checklist[index] === 'no' ? 'Não cumpre' : 'Não respondido';
+        return '- ' + item + ': ' + value;
+      }).join('\n');
+      const answersSummary = [
+        'Primeira decisão: ' + (state.answers.q1 || 'Não respondida'),
+        'Equipamento de acesso: ' + (state.answers.q2 || 'Não respondida'),
+        'Alteração das condições: ' + (state.answers.q3 || 'Não respondida'),
+        'Decisão final correta: ' + (state.finalDecisionCorrect ? 'Sim' : 'Não')
+      ].join('\n');
+
+      return [
+        'Relatório da atividade: Autorizar ou Não Autorizar os Trabalhos?',
+        'Módulo: Trabalho em Altura em Instalações Elétricas ou nas Imediações',
+        'Data: ' + new Date().toLocaleString('pt-PT'),
+        '',
+        'Resultado: ' + score + '%',
+        'Classificação: ' + band(score),
+        '',
+        'Respostas de decisão:',
+        answersSummary,
+        '',
+        'Checklist:',
+        checklistSummary,
+        '',
+        'Reflexão do formando:',
+        reflection
+      ].join('\n');
+    }
+
+    function showScreen(index) {
+      state.screen = Math.max(0, Math.min(index, screens.length - 1));
+      screens.forEach((screen, i) => screen.classList.toggle('active', i === state.screen));
+      document.getElementById('screenCounter').textContent = (state.screen + 1) + '/' + screens.length;
+      document.getElementById('progressBar').style.width = Math.round(((state.screen + 1) / screens.length) * 100) + '%';
+      if (state.screen === 8) renderSummary();
+    }
+
+    function renderSummary() {
+      const score = calculateScore();
+      document.getElementById('finalScore').textContent = score + '%';
+      document.getElementById('finalBand').textContent = band(score);
+      document.getElementById('scormState').textContent = score >= 70 ? 'Apto' : 'Não apto';
+      document.getElementById('reportBox').textContent = buildReport();
+    }
+
+    function finishActivity() {
+      state.finished = true;
+      const score = calculateScore();
+      document.getElementById('statusDisplay').textContent = score >= 70 ? 'Concluído' : 'A rever';
+      localStorage.setItem('sht_altura_eletrica_completed', 'true');
+      scorm.set('cmi.core.score.raw', score);
+      scorm.set('cmi.core.lesson_status', score >= 70 ? 'passed' : 'failed');
+      scorm.set('cmi.core.session_time', '0000:20:00');
+      saveSuspendData();
+      scorm.finish();
+      renderSummary();
+      alert('Resultado guardado: ' + score + '%. ' + band(score) + '.');
+    }
+
+    async function copyReport() {
+      const text = buildReport();
+      const reportBox = document.getElementById('reportBox');
+      reportBox.textContent = text;
+      try {
+        await navigator.clipboard.writeText(text);
+        alert('Relatório copiado. Pode colá-lo numa mensagem, documento ou campo de submissão.');
+      } catch (e) {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(reportBox);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        alert('Não foi possível copiar automaticamente. O relatório ficou selecionado; use Ctrl+C para copiar.');
+      }
+    }
+
+    function downloadReport() {
+      const blob = new Blob([buildReport()], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'relatorio-autorizacao-trabalhos-altura.txt';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    document.querySelectorAll('[data-next]').forEach(button => button.addEventListener('click', () => showScreen(state.screen + 1)));
+    document.querySelectorAll('[data-prev]').forEach(button => button.addEventListener('click', () => showScreen(state.screen - 1)));
+    document.getElementById('submitReflection').addEventListener('click', submitReflection);
+    document.getElementById('finishBtn').addEventListener('click', finishActivity);
+    document.getElementById('copyReport').addEventListener('click', copyReport);
+    document.getElementById('downloadReport').addEventListener('click', downloadReport);
+
+    window.addEventListener('beforeunload', () => {
+      if (scorm.initialized) scorm.finish();
+    });
+
+    scorm.init();
+    renderHotspots();
+    renderQuestions();
+    renderChecklist();
+    updateHotspotList();
+    updateScore();
+    showScreen(0);
+  </script>
+</body>
+</html>
